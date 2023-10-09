@@ -17,7 +17,7 @@ const lightbox = new SimpleLightbox('.lightbox', {
   showCounter: false,
   scrollZoom: false,
   close: false,
-})
+});
 
 searchForm.addEventListener('submit', onFormSybmit);
 window.addEventListener('scroll', onScrollHandler);
