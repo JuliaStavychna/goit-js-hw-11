@@ -72,17 +72,16 @@ function renderGallery(hits) {
   lightbox.refresh();
 }
 
-async function fetchDataFromApi() {
-  try {
-    showLoader();
-    const response = await axios.get(BASE_URL, options);
-    return response.data.hits;
-  } catch (err) {
-    Notify.failure(err);
-    throw err;
-  } finally {
-    hideLoader();
-  }
+async function getArray(wordRequest, page) {
+  const params = {
+    key: '39802923-d8b3f86254aa0fe1b36a34a60',
+    q: wordRequest,
+    image_type: 'photo',
+    orientation: 'horizontal',
+    safesearch: true,
+    page,
+    per_page: perPage,
+  };
 }
 
 function onScrollHandler() {
@@ -109,20 +108,32 @@ async function onFormSybmit(e) {
   reachedEnd = false;
 
   try {
-    const hits = await fetchDataFromApi();
-    totalHits = hits.length;
-    if (totalHits === 0) {
-      Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
+    const nextPageResponse = await getArray(currentSearchQuery, currentPage);
+    if (nextPageResponse.hits.length > 0) {
+      displayImages(nextPageResponse.hits);
+      updateLoadMoreBtn(nextPageResponse.totalHits);
+      if (!isFirstLoad) {
+        Notiflix.Notify.success(
+          'Hooray! We found these images by your request.'
+        );
+      }
+      Notiflix.Notify.success('Look! We found some more pictures for you!');
+      lightbox.refresh();
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     } else {
-      Notify.success(`Hooray! We found ${totalHits} images.`);
-      renderGallery(hits);
+      loadMoreBtn.style.display = 'none';
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
     }
-    searchInput.value = '';
-    hideLoader();
-  } catch (err) {
-    Notify.failure(err);
-    hideLoader();
+  } catch (error) {
+    console.log(error);
+    loadMoreBtn.style.display = 'none';
+    Notiflix.Notify.failure(
+      'An error occurred while fetching data. Please try again later.'
+    );
   }
 }
