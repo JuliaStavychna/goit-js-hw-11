@@ -18,6 +18,7 @@ const lightbox = new SimpleLightbox('.lightbox', {
   scrollZoom: false,
   close: false,
 });
+
 searchForm.addEventListener('submit', onFormSybmit);
 window.addEventListener('scroll', onScrollHandler);
 document.addEventListener('DOMContentLoaded', hideLoader);
@@ -72,16 +73,21 @@ function renderGallery(hits) {
   lightbox.refresh();
 }
 
-async function getArray(wordRequest, page) {
-  const params = {
-    key: '39802923-d8b3f86254aa0fe1b36a34a60',
-    q: wordRequest,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-    page,
-    per_page: perPage,
-  };
+async function loadMore() {
+  isLoadingMore = true;
+  options.params.page += 1;
+  try {
+    showLoader();
+    const response = await axios.get(BASE_URL, options);
+    const hits = response.data.hits;
+    renderGallery(hits);
+  } catch (err) {
+    Notify.failure(err);
+    hideLoader();
+  } finally {
+    hideLoader();
+    isLoadingMore = false;
+  }
 }
 
 function onScrollHandler() {
@@ -108,32 +114,22 @@ async function onFormSybmit(e) {
   reachedEnd = false;
 
   try {
-    const nextPageResponse = await getArray(currentSearchQuery, currentPage);
-    if (nextPageResponse.hits.length > 0) {
-      displayImages(nextPageResponse.hits);
-      updateLoadMoreBtn(nextPageResponse.totalHits);
-      if (!isFirstLoad) {
-        Notiflix.Notify.success(
-          'Hooray! We found these images by your request.'
-        );
-      }
-      Notiflix.Notify.success('Look! We found some more pictures for you!');
-      lightbox.refresh();
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
-    } else {
-      loadMoreBtn.style.display = 'none';
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
+    showLoader();
+    const response = await axios.get(BASE_URL, options);
+    totalHits = response.data.totalHits;
+    const hits = response.data.hits;
+    if (hits.length === 0) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
       );
+    } else {
+      Notify.success(`Hooray! We found ${totalHits} images.`);
+      renderGallery(hits);
     }
-  } catch (error) {
-    console.log(error);
-    loadMoreBtn.style.display = 'none';
-    Notiflix.Notify.failure(
-      'An error occurred while fetching data. Please try again later.'
-    );
+    searchInput.value = '';
+    hideLoader();
+  } catch (err) {
+    Notify.failure(err);
+    hideLoader();
   }
 }
