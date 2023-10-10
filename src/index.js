@@ -82,8 +82,7 @@ async function loadMore() {
     if (!searchQuery) {
       Notify.failure('please input value');
     }
-    const data = await getImages(BASE_URL, { params: options.params }); 
-    const data = response.data;
+    const data = await getImages(BASE_URL, { params: options.params });
     const hits = data.hits;
     renderGallery(hits);
   } catch (err) {
@@ -113,14 +112,14 @@ async function onFormSubmit(e) {
   if (!searchQuery) {
     Notify.failure('please input value');
   }
-  options.params.q = searchInput.value.trim();
+  options.params.q = searchQuery;
   galleryEl.innerHTML = '';
   reachedEnd = false;
 
   try {
     showLoader();
-    const searchQuery = searchInput.value.trim();
-    const data = response.data;
+  
+    const data = await getImages(BASE_URL, { params: options.params });
     totalHits = data.totalHits;
     const hits = data.hits;
     if (hits.length === 0) {

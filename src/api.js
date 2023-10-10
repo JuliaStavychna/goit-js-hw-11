@@ -12,9 +12,9 @@ export const options = {
     q: '',
   },
 };
-export function getImages(query =''){
+export async function getImages(query =''){
   options.params.q = query
   const url = `${BASE_URL}?${new URLSearchParams(options.params).toString()}`;
-  const data = await axios.get(url);
-  return data
+  const response = await axios.get(url);
+  return response.data
 }
