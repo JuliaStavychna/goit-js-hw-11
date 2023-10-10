@@ -82,7 +82,7 @@ async function loadMore() {
     if (!searchQuery) {
       Notify.failure('please input value');
     }
-    const response = await axios.get(BASE_URL, { params: options.params }); 
+    const data = await getImages(BASE_URL, { params: options.params }); 
     const data = response.data;
     const hits = data.hits;
     renderGallery(hits);
@@ -109,17 +109,17 @@ function onScrollHandler() {
 
 async function onFormSubmit(e) {
   e.preventDefault();
-  options.params.q = searchInput.value.trim();
-  if (options.params.q === '') {
-    return;
+  const searchQuery = searchInput.value.trim();
+  if (!searchQuery) {
+    Notify.failure('please input value');
   }
-  options.params.page = 1;
+  options.params.q = searchInput.value.trim();
   galleryEl.innerHTML = '';
   reachedEnd = false;
 
   try {
     showLoader();
-    const response = await axios.get(BASE_URL, { params: options.params }); 
+    const searchQuery = searchInput.value.trim();
     const data = response.data;
     totalHits = data.totalHits;
     const hits = data.hits;
